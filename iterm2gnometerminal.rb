@@ -48,7 +48,9 @@ def get_rgb(v)
 end
 
 
-iterm_theme = ARGV[0]
+iterm_theme = ARGV[-1]
+DRY = ARGV.length > 1 && ARGV[0] == "--dry"
+
 doc = Document.new(File.new(iterm_theme))
 keys_to_export = Hash.new
 keys_to_export["palette"] = Array.new(16)
@@ -83,7 +85,6 @@ theme_name = File.basename(iterm_theme, ".itermcolors")
 
 uuid = existing_profiles.select{|i|i[:name] == theme_name}.first&.dig(:uuid)
 
-
 if uuid
   puts "# Found existing theme '#{theme_name}'. Updating it."
 else
@@ -93,7 +94,11 @@ else
 end
 
 def run(command)
-  raise "Cannot run command '#{command}'" unless system(command)
+  if DRY
+    puts command
+  else
+    raise "Cannot run command '#{command}'" unless system(command)
+  end
 end
 # Setting base colors
 run dconf_profile(uuid, "foreground_color", keys_to_export["foreground_color"])
