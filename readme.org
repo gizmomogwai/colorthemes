@@ -1,0 +1,2 @@
+* Convert your iterm colorscheme to gnome-terminal colorscheme
+- pure stdruby, no external dependencies
