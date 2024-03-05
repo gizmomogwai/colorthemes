@@ -11,23 +11,6 @@ require "rexml/document"
 require "securerandom"
 include REXML
 
-class String
-  def colorize(color_code)
-    "\e[#{color_code}m#{self}\e[0m"
-  end
-
-  def red
-    colorize(31)
-  end
-
-  def green
-    colorize(32)
-  end
-  def gray
-    colorize(37)
-  end
-end
-
 def convert(pairs, key)
   v = pairs.select{|k,v|k.text == key}.first[1]
   return "%02X" % (v.text.to_f * 255)
@@ -102,21 +85,24 @@ uuid = existing_profiles.select{|i|i[:name] == theme_name}.first&.dig(:uuid)
 
 
 if uuid
-  puts "# Found existing theme '#{theme_name}'. Please run the following commands to update it:".gray
+  puts "# Found existing theme '#{theme_name}'. Updating it."
 else
-  puts "# Cannot find theme '#{theme_name}'. Please run the following commands to create it:".gray
+  puts "# Cannot find theme '#{theme_name}'. Creating it."
   uuid = SecureRandom.uuid
   existing_profiles << {name: theme_name, uuid: uuid}
 end
 
-puts "# Setting base colors".gray
-puts dconf_profile(uuid, "foreground_color", keys_to_export["foreground_color"])
-puts dconf_profile(uuid, "background_color", keys_to_export["background_color"])
-puts dconf_profile(uuid, "bold_color", keys_to_export["bold_color"])
-puts "# Setting ansi palette colors".gray
-puts dconf_profile_array(uuid, "palette", keys_to_export["palette"])
-puts "# Setting theme name".gray
-puts dconf_profile(uuid, "visible-name", "'#{theme_name}'")
-puts dconf_profile(uuid, "use-theme-colors", "false")
-puts "# Add profile to profiles".gray
-puts dconf_array("#{profiles}/list", existing_profiles.map{|i|"'#{i[:uuid][0..-1]}'"})
+def run(command)
+  raise "Cannot run command '#{command}'" unless system(command)
+end
+# Setting base colors
+run dconf_profile(uuid, "foreground_color", keys_to_export["foreground_color"])
+run dconf_profile(uuid, "background_color", keys_to_export["background_color"])
+run dconf_profile(uuid, "bold_color", keys_to_export["bold_color"])
+# Setting ansi palette colors
+run dconf_profile_array(uuid, "palette", keys_to_export["palette"])
+# Setting theme name
+run dconf_profile(uuid, "visible-name", "'#{theme_name}'")
+run dconf_profile(uuid, "use-theme-colors", "false")
+# Add profile to profiles
+run dconf_array("#{profiles}/list", existing_profiles.map{|i|"'#{i[:uuid][0..-1]}'"})
